@@ -1,0 +1,46 @@
+/* Ensure the map container fills the entire viewport */
+#map {
+  height: 100vh;
+  position: relative; /* Required for positioning the logo */
+}
+
+/* Position the logo in the center of the map */
+#logo {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000; /* Higher z-index to place it on top */
+}
+
+/* Style the logo image */
+#logo img {
+  width: 300px; /* Adjust the width as needed */
+  height: auto; /* Maintain aspect ratio */
+}
+#map-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#buttons {
+  position: absolute;
+  bottom: 20px;
+  z-index: 999; /* Set a higher z-index to bring buttons over the map */
+  text-align: center;
+  width: 100%; /* Center buttons horizontally */
+}
+#buttons a {
+  text-decoration: none;
+}
+#buttons button {
+  padding: 10px 20px;
+  background-color: #0074d9; /* Button background color */
+  color: #fff; /* Button text color */
+  border: none;
+  border-radius: 7px;
+  margin: 5px;
+  cursor: pointer;
+}

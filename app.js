@@ -1,3 +1,5 @@
+let userLocationObtained = false;
+
 const firebaseConfig = {
   apiKey: "AIzaSyD3Cl5s1E5VduZ5u1pg52-gWmJ4lA85-9c",
   authDomain: "bus-live--location.firebaseapp.com",
@@ -13,24 +15,38 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const customIcon = L.icon({
-  iconUrl: 'bus-marker.png',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
+    iconUrl: 'bus-marker.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
 });
 
 const markers = {};
 const previousLocations = {};
 
 function initMap() {
-  const map = L.map("map").setView([13.003065, 79.970555], 10);
+    const map = L.map("map").setView([13.003065, 79.970555], 10);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-  db.ref("BusLocations").on("value", (snapshot) => {
-    mapMarkers(snapshot.val());
-  });
+    if (!userLocationObtained) {
+        // Get the user's location only if it hasn't been obtained before
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+                L.marker(userLatLng).addTo(map).bindPopup('Your Location').openPopup();
+                userLocationObtained = true; // Set the flag to true after obtaining the location
+            },
+            function (error) {
+                console.error('Error getting user location:', error.message);
+            }
+        );
+    }
+
+    db.ref("BusLocations").on("value", (snapshot) => {
+        mapMarkers(snapshot.val());
+    });
 
   // ...
 
@@ -106,14 +122,14 @@ markers[busNumber].on('click', function (e) {
         // Update the last clicked marker
         lastClickedMarker = busNumber;
 
-        // Automatically remove the route after 15 seconds
+        // Automatically remove the route after 5 seconds
         setTimeout(function () {
           if (routeControls[busNumber]) {
             map.removeControl(routeControls[busNumber]);
             // Clear the reference after removing
             delete routeControls[busNumber];
           }
-        }, 15000); // 15 seconds
+        }, 5000); // 5 seconds
       },
       function (error) {
         console.error('Error getting user location:', error.message);
@@ -145,15 +161,7 @@ function drawRoute(startLatLng, endLatLng) {
     map.fitBounds(bounds, { padding: [20, 20] });
 
     // Add a marker for the user's location
-    navigator.geolocation.getCurrentPosition(
-      function (position) {
-        const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
-        L.marker(userLatLng).addTo(map).bindPopup('Your Location').openPopup();
-      },
-      function (error) {
-        console.error('Error getting user location:', error.message);
-      }
-    );
+    
   }
 }
 

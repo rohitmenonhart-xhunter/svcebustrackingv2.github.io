@@ -47,12 +47,15 @@ function initMap() {
     db.ref("BusLocations").on("value", (snapshot) => {
         mapMarkers(snapshot.val());
     });
-
+    setInterval(checkAndDeleteOutdatedNodes, 60000);
   // ...
 
 // ...
 
 function mapMarkers(locations) {
+
+  checkAndDeleteOutdatedNodes();
+
   for (const busNumber in markers) {
     map.removeLayer(markers[busNumber]);
   }
@@ -174,5 +177,23 @@ function getBusSpeed(busNumber, currentLatLng) {
   const timeElapsed = (Date.now() - previousLocation.timestamp) / 1000;
   return distance / timeElapsed; // speed = distance / time
 }
+
+function checkAndDeleteOutdatedNodes() {
+  const currentTime = Date.now();
+  for (const busNumber in previousLocations) {
+      const lastUpdateTimestamp = previousLocations[busNumber].timestamp;
+      const elapsedTime = (currentTime - lastUpdateTimestamp) / 1000; // Convert to seconds
+
+      if (elapsedTime > 120) { // 120 seconds = 2 minutes
+          // Bus number node not updated for 2 minutes, delete it from the database
+          db.ref(`BusLocations/${busNumber}`).remove();
+          // Remove the marker from the map
+          map.removeLayer(markers[busNumber]);
+          // Remove the previous location from the local object
+          delete previousLocations[busNumber];
+      }
+  }
+}
+
   
 }
